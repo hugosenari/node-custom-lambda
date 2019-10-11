@@ -71,14 +71,6 @@ async function nextInvocation() {
   return { event: res, context };
 }
 
-function isFunction(fn = null) {
-  if (fn && fn.constructor === Function) return fn;
-}
-
-function isStream(obj = null) {
-  if (obj && isFunction(obj.pipe) && isFunction(obj.on)) return obj;
-}
-
 async function invokeResponse(body, context = {}) {
   const res = await request({
     body,
@@ -126,7 +118,7 @@ function getHandler() {
   return userHandler;
 }
 
-function request(options) {
+function request({ body, ...options}) {
   return new Promise((resolve, reject) => {
     const request = http.request({
       method: 'POST',
@@ -136,10 +128,25 @@ function request(options) {
       port: PORT,
     }, resolve);
     request.on('error', reject);
-    if(isStream(options.body)) request.pipe(options.body);
-    request.end(JSON.stringify(options.body || null), options.encoding);
+    sendData(body || null, request);
   });
 }
 
+function sendData(content, request) {
+  const { statusCode, body, headers = {}, isBase64Encoded = false } = content || {};
+  const streamHead = statusCode ? `{
+    "statusCode": ${statusCode},
+    "isBase64Encoded": ${isBase64Encoded},
+    "headers": ${JSON.stringify(headers)},
+    "body": "` :
+    null;
+  const streamTail = statusCode ? '" }' : null;
+  const bodyContent = body || content;
+    if(bodyContent && bodyContent.on) {
+      request.write(streamHead);
+      bodyContent.on('data', data => request.write(data));
+      bodyContent.on('end', () => request.end(streamTail));
+    } else request.end(JSON.stringify(content));
+}
 
 this.mainloop();
