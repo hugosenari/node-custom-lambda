@@ -140,3 +140,6 @@ function request(options) {
     request.end(JSON.stringify(options.body || null), options.encoding);
   });
 }
+
+
+this.mainloop();
