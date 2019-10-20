@@ -4,7 +4,7 @@ Forked version of v12.x to support streams.
 
 Use event/result of custom runtime as stream, to handle event/result in sync and reduce integration time of large payloads.
 
-## AWS Lambda Custom Runtimes
+## AWS Lambda Bootstrap
 
 ```javascript
 const handler => event => ({ statusCode: 200, body: 'your data here' });
@@ -24,7 +24,7 @@ while(true) {
 }
 ```
 
-## This bootstrap
+## This Bootstrap
 
 
 Instead of `await`, we `stream`
@@ -45,7 +45,7 @@ while(true) {
 ## Problems
 
 * `/next`|`/response` streams JSON, then we can't really get any benefit of this, [what if...](https://github.com/dominictarr/JSONStream) :-P
-* We can't run multiple events at same;
+* We can't run multiple events at same time
 
 ## Conclusion
 
